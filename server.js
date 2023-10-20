@@ -2,6 +2,8 @@ const express = require("express");
 const cors = require("cors");
 const { MongoClient } = require("mongodb");
 
+const { validateToken } = require("./middleware");
+
 const mongoUrl = process.env.DB_URL;
 const dbName = process.env.DB_NAME;
 
@@ -29,6 +31,8 @@ server.use(cors());
 server.post("/login", async (req, res) => {});
 
 server.post("/signup", async (req, res) => {});
+
+server.use(validateToken);
 
 // foods api
 server.get("/users/:userId/foods", async (req, res) => {});
