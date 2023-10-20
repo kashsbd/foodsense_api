@@ -41,7 +41,7 @@ server.put("/users/:userId/foods/:foodId", async (req, res) => { });
 server.delete("/users/:userId/foods/:foodId", async (req, res) => { });
 
 server.get("/users/:userId/notes", async (req, res) => { });
-
+//notes
 server.get("/users/:userId/notes", async (req, res) => {
   try {
     const userId = req.params.userId;
