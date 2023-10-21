@@ -4,9 +4,7 @@ const cors = require("cors");
 const { MongoClient, ObjectId } = require("mongodb");
 
 const mongoUrl = process.env.DB_URL;
-// const mongoUrl = "mongodb+srv://etengis:etengis@cluster0.greohbr.mongodb.net";
 const dbName = process.env.DB_NAME;
-// const dbName = "projectFoods";
 const COLLECTION_OWNER = "owner";
 
 let db;
