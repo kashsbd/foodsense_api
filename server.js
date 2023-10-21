@@ -34,19 +34,30 @@ server.post("/login", async (req, res) => {
   const body = req.body;
 
   try {
-    const hashedPassword = await bcrypt.hash(body?.password, 10);
     const owner = await db
       .collection(COLLECTION_OWNER)
-      .findOne({ email: body?.email, password: hashedPassword });
+      .findOne({ email: body?.email });
 
     if (owner) {
-      const token = await jwt.sign(
-        { userId: owner?._id, email: owner?.email },
-        process.env.JWT_SECRET
+      const validPassword = await bcrypt.compare(
+        body?.password,
+        owner?.password
       );
-      res.status(200).send({ success: true, data: token });
+
+      if (validPassword) {
+        const token = jwt.sign(
+          { userId: owner?._id, email: owner?.email },
+          process.env.JWT_SECRET
+        );
+        return res.status(200).send({ success: true, data: token });
+      } else {
+        return res.status(401).send({
+          success: false,
+          error: "Wrong email or password is provided.",
+        });
+      }
     } else {
-      res.status(401).send({
+      return res.status(401).send({
         success: false,
         error: "Wrong email or password is provided.",
       });
@@ -67,7 +78,7 @@ server.post("/signup", async (req, res) => {
       .toArray();
 
     if (allOwners?.length > 0) {
-      res
+      return res
         .status(409)
         .send({ success: false, error: "Please use another email." });
     }
@@ -77,10 +88,10 @@ server.post("/signup", async (req, res) => {
       .collection(COLLECTION_OWNER)
       .insertOne({ ...body, password: hashedPassword });
 
-    res.status(201).send({ success: true });
+    return res.status(201).send({ success: true });
   } catch (error) {
     console.log(error);
-    res.status(500).send({ success: false, error: error?.message });
+    return res.status(500).send({ success: false, error: error?.message });
   }
 });
 
