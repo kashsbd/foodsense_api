@@ -165,15 +165,40 @@ server.delete("/users/:userId/foods/:foodId", async (req, res) => {
   }
 });
 
-// server.get("/users/:userId/notes", async (req, res) => {});
-
 // notes api
 server.get("/users/:userId/notes", async (req, res) => {});
 
 server.post("/users/:userId/notes", async (req, res) => {});
 
 // profile api
-server.post("/users/me", async (req, res) => {});
+server.get("/users/me", async (req, res) => {
+  const { userId } = req.loggedInUser;
+
+  try {
+    const owner = await db
+      .collection(COLLECTION_OWNER)
+      .findOne({ _id: new ObjectId(userId) });
+
+    if (owner) {
+      return res.status(200).send({
+        success: true,
+        data: {
+          email: owner?.email,
+          phno: owner?.phno,
+          fullname: owner?.fullname,
+          address: owner?.address,
+        },
+      });
+    } else {
+      return res
+        .status(404)
+        .send({ success: false, error: "Owner not found." });
+    }
+  } catch (error) {
+    console.log(error);
+    return res.status(500).send({ success: false, error: error?.message });
+  }
+});
 
 const port = process.env.PORT;
 server.listen(port, () => {
