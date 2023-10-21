@@ -98,8 +98,8 @@ server.post("/signup", async (req, res) => {
 server.use(validateToken);
 
 //Get all foods
-server.get("/users/:userId/foods", async (req, res) => {
-  const userId = req.params.userId;
+server.get("/users/foods", async (req, res) => {
+  const { userId } = req.loggedInUser;
   try {
     const data = await db
       .collection(COLLECTION_OWNER)
@@ -117,8 +117,8 @@ server.get("/users/:userId/foods", async (req, res) => {
 });
 
 //Add new Food
-server.post("/users/:userId/foods", async (req, res) => {
-  const userId = req.params.userId;
+server.post("/users/foods", async (req, res) => {
+  const { userId } = req.loggedInUser;
   const newFood = req.body;
   try {
     await db
@@ -132,8 +132,8 @@ server.post("/users/:userId/foods", async (req, res) => {
 });
 
 // Edit food
-server.put("/users/:userId/foods/:foodId", async (req, res) => {
-  const userId = req.params.userId;
+server.put("/users/foods/:foodId", async (req, res) => {
+  const { userId } = req.loggedInUser;
   const foodId = req.params.foodId;
   const editedFood = req.body;
   try {
@@ -149,8 +149,8 @@ server.put("/users/:userId/foods/:foodId", async (req, res) => {
   }
 });
 
-server.delete("/users/:userId/foods/:foodId", async (req, res) => {
-  const userId = req.params.userId;
+server.delete("/users/foods/:foodId", async (req, res) => {
+  const { userId } = req.loggedInUser;
   const foodId = req.params.foodId;
   try {
     const result = await db
@@ -166,9 +166,9 @@ server.delete("/users/:userId/foods/:foodId", async (req, res) => {
 });
 
 // notes api
-server.get("/users/:userId/notes", async (req, res) => {});
+server.get("/users/notes", async (req, res) => {});
 
-server.post("/users/:userId/notes", async (req, res) => {});
+server.post("/users/notes", async (req, res) => {});
 
 // profile api
 server.get("/users/me", async (req, res) => {
