@@ -22,7 +22,6 @@ async function connectDB() {
     console.error("Error connecting to MongoDB: " + err);
   }
 }
-
 connectDB();
 
 const server = express();
@@ -70,7 +69,6 @@ server.post("/login", async (req, res) => {
 
 server.post("/signup", async (req, res) => {
   const body = req.body;
-
   try {
     const allOwners = await db
       .collection(COLLECTION_OWNER)
@@ -82,7 +80,6 @@ server.post("/signup", async (req, res) => {
         .status(409)
         .send({ success: false, error: "Please use another email." });
     }
-
     const hashedPassword = await bcrypt.hash(body?.password, 10);
     await db
       .collection(COLLECTION_OWNER)
