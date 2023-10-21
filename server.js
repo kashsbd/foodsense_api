@@ -2,7 +2,6 @@ require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
 const { MongoClient, ObjectId } = require("mongodb");
-
 const mongoUrl = process.env.DB_URL;
 const dbName = process.env.DB_NAME;
 const COLLECTION_OWNER = "owner";
@@ -37,7 +36,7 @@ server.post("/signup", async (req, res) => { });
 server.get("/users/:userId/notes", async (req, res) => {
   try {
     const userId = req.params.userId;
-    const notes = await db.collection(dbName).findOne({ _id: new ObjectId(userId) });
+    const notes = await db.collection(COLLECTION_OWNER).findOne({ _id: new ObjectId(userId) });
     if (notes) {
       res.status(200).send({ success: true, data: notes })
     }
@@ -132,7 +131,7 @@ server.post("/users/:userId/notes", async (req, res) => {
     const notes = req.body;
     notes.date = new Date();
     notes._id = new ObjectId();
-    const result = await db.collection(dbName).updateOne({ _id: new ObjectId(req.params.userId) }, { $push: { notes: notes } });
+    const result = await db.collection(COLLECTION_OWNER).updateOne({ _id: new ObjectId(req.params.userId) }, { $push: { notes: notes } });
     if (result) {
       res.status(200).send({ success: true, data: result });
     }
