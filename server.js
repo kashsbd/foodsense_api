@@ -2,6 +2,11 @@ require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
 const { MongoClient, ObjectId } = require("mongodb");
+const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
+
+const { validateToken } = require("./middleware");
+
 const mongoUrl = process.env.DB_URL;
 const dbName = process.env.DB_NAME;
 const COLLECTION_OWNER = "owner";
@@ -10,9 +15,7 @@ let db;
 
 async function connectDB() {
   try {
-    const client = await MongoClient.connect(mongoUrl)
-    //   useUnifiedTopology: true,
-    // });
+    const client = await MongoClient.connect(mongoUrl);
     console.log("Connected to MongoDB");
     db = client.db(dbName);
   } catch (err) {
@@ -27,36 +30,74 @@ server.use(express.json());
 server.use(cors());
 
 // auth api
-server.post("/login", async (req, res) => { });
+server.post("/login", async (req, res) => {
+  const body = req.body;
 
-server.post("/signup", async (req, res) => { });
-
-
-//notes
-server.get("/users/:userId/notes", async (req, res) => {
   try {
-    const userId = req.params.userId;
-    const notes = await db.collection(COLLECTION_OWNER).findOne({ _id: new ObjectId(userId) });
-    if (notes) {
-      res.status(200).send({ success: true, data: notes })
+    const owner = await db
+      .collection(COLLECTION_OWNER)
+      .findOne({ email: body?.email });
+
+    if (owner) {
+      const validPassword = await bcrypt.compare(
+        body?.password,
+        owner?.password
+      );
+
+      if (validPassword) {
+        const token = jwt.sign(
+          { userId: owner?._id, email: owner?.email },
+          process.env.JWT_SECRET
+        );
+        return res.status(200).send({ success: true, data: token });
+      } else {
+        return res.status(401).send({
+          success: false,
+          error: "Wrong email or password is provided.",
+        });
+      }
+    } else {
+      return res.status(401).send({
+        success: false,
+        error: "Wrong email or password is provided.",
+      });
     }
   } catch (error) {
-    res.status(500).send({ success: false, error: 'Internal server Error' })
+    console.log(error);
+    res.status(500).send({ success: false, error: error?.message });
   }
 });
 
-//insert Owner
-server.post("/users", async (req, res) => {
-  const newOwner = req.body;
+server.post("/signup", async (req, res) => {
+  const body = req.body;
+
   try {
-    await db.collection(COLLECTION_OWNER).insertOne(newOwner);
-    res.status(201).send({ success: true, data: newOwner });
+    const allOwners = await db
+      .collection(COLLECTION_OWNER)
+      .find({ email: body?.email })
+      .toArray();
+
+    if (allOwners?.length > 0) {
+      return res
+        .status(409)
+        .send({ success: false, error: "Please use another email." });
+    }
+
+    const hashedPassword = await bcrypt.hash(body?.password, 10);
+    await db
+      .collection(COLLECTION_OWNER)
+      .insertOne({ ...body, password: hashedPassword });
+
+    return res.status(201).send({ success: true });
   } catch (error) {
-    res.status(500).send({ success: false, error: "Server Error" });
+    console.log(error);
+    return res.status(500).send({ success: false, error: error?.message });
   }
 });
-//Get all foods
 
+server.use(validateToken);
+
+//Get all foods
 server.get("/users/:userId/foods", async (req, res) => {
   const userId = req.params.userId;
   try {
@@ -139,10 +180,38 @@ server.post("/users/:userId/notes", async (req, res) => {
     res.status(500).send({ success: false, error: 'Internal Server Error' })
   }
 
+
 });
 
 // profile api
-server.post("/users/me", async (req, res) => { });
+server.get("/users/me", async (req, res) => {
+  const { userId } = req.loggedInUser;
+
+  try {
+    const owner = await db
+      .collection(COLLECTION_OWNER)
+      .findOne({ _id: new ObjectId(userId) });
+
+    if (owner) {
+      return res.status(200).send({
+        success: true,
+        data: {
+          email: owner?.email,
+          phno: owner?.phno,
+          fullname: owner?.fullname,
+          address: owner?.address,
+        },
+      });
+    } else {
+      return res
+        .status(404)
+        .send({ success: false, error: "Owner not found." });
+    }
+  } catch (error) {
+    console.log(error);
+    return res.status(500).send({ success: false, error: error?.message });
+  }
+});
 
 const port = process.env.PORT;
 server.listen(port, () => {
