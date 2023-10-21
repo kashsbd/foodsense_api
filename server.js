@@ -88,7 +88,7 @@ server.post("/users/:userId/foods", async (req, res) => {
         { $push: { foods: { _id: new ObjectId(), ...newFood } } }
       );
     res.status(201).send({ success: true, data: newFood });
-  } catch (error) {}
+  } catch (error) { }
 });
 
 // Edit food
@@ -129,10 +129,10 @@ server.delete("/users/:userId/foods/:foodId", async (req, res) => {
 
 server.post("/users/:userId/notes", async (req, res) => {
   try {
-    const notes=req.body;
+    const notes = req.body;
     notes.date = new Date();
-    notes._id=new ObjectId();
-    const result = await db.collection(dbName).updateOne({ _id: new ObjectId(req.params.userId)}, {$push: { notes: notes } });
+    notes._id = new ObjectId();
+    const result = await db.collection(dbName).updateOne({ _id: new ObjectId(req.params.userId) }, { $push: { notes: notes } });
     if (result) {
       res.status(200).send({ success: true, data: result });
     }
