@@ -124,7 +124,7 @@ server.post("/users/foods", async (req, res) => {
         { $push: { foods: { _id: new ObjectId(), ...newFood } } }
       );
     res.status(201).send({ success: true, data: newFood });
-  } catch (error) { }
+  } catch (error) {}
 });
 
 // Edit food
@@ -133,15 +133,21 @@ server.put("/users/foods/:foodId", async (req, res) => {
   const foodId = req.params.foodId;
   const editedFood = req.body;
   try {
-    await db
-      .collection(COLLECTION_OWNER)
-      .updateOne(
-        { _id: new ObjectId(userId), "foods._id": new ObjectId(foodId) },
-        { $set: { "foods.$": editedFood } }
-      );
+    await db.collection(COLLECTION_OWNER).updateOne(
+      { _id: new ObjectId(userId), "foods._id": new ObjectId(foodId) },
+      {
+        $set: {
+          "foods.$.name": editedFood.name,
+          "foods.$.origin": editedFood.origin,
+          "foods.$.price": editedFood.price,
+          "foods.$.date": editedFood.date,
+        },
+      }
+    );
     res.status(201).send({ success: true, data: editedFood });
   } catch (error) {
-    res.status(500).send({ success: false, error: "Server Error" });
+    res.status(500).send({ success: false, error: error.message });
+    console.log(error);
   }
 });
 
@@ -161,34 +167,36 @@ server.delete("/users/foods/:foodId", async (req, res) => {
   }
 });
 
-
 server.post("/users/notes", async (req, res) => {
   try {
     const { userId } = req.loggedInUser;
     const notes = req.body;
     notes.date = new Date();
     notes._id = new ObjectId();
-    const result = await db.collection(COLLECTION_OWNER).updateOne({ _id: new ObjectId(userId) }, { $push: { notes: notes } });
+    const result = await db
+      .collection(COLLECTION_OWNER)
+      .updateOne({ _id: new ObjectId(userId) }, { $push: { notes: notes } });
     if (result) {
       res.status(200).send({ success: true, data: result.notes });
     }
   } catch (error) {
-    res.status(500).send({ success: false, error: 'Internal Server Error' })
+    res.status(500).send({ success: false, error: "Internal Server Error" });
   }
 });
 
-server.get('/users/notes',async(req,res)=>{
+server.get("/users/notes", async (req, res) => {
   try {
-    const {userId}=req.loggedInUser;
-    const result=await db.collection(COLLECTION_OWNER).findOne({_id:new ObjectId(userId)});
-    if(result){
-      res.status(200).send({success:true,data:result.notes});
+    const { userId } = req.loggedInUser;
+    const result = await db
+      .collection(COLLECTION_OWNER)
+      .findOne({ _id: new ObjectId(userId) });
+    if (result) {
+      res.status(200).send({ success: true, data: result.notes });
     }
   } catch (error) {
-    res.status(500).send({success:false,error:error.message})
-    
+    res.status(500).send({ success: false, error: error.message });
   }
-})
+});
 
 // profile api
 server.get("/users/me", async (req, res) => {
