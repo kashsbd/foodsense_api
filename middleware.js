@@ -4,8 +4,6 @@ exports.validateToken = (req, res, next) => {
   const token = req.headers["authentication"]?.split(" ")[1];
   const key = process.env.JWT_SECRET;
 
-  console.log("Req header",req.headers)
-  
   if (!token)
     return res
       .status(401)

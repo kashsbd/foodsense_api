@@ -62,7 +62,7 @@ server.post("/login", async (req, res) => {
     }
   } catch (error) {
     console.log(error);
-    res.status(500).send({ success: false, error: error?.message });
+    return res.status(500).send({ success: false, error: error?.message });
   }
 });
 
@@ -184,7 +184,9 @@ server.post("/users/notes", async (req, res) => {
       res.status(200).send({ success: true, data: result.notes });
     }
   } catch (error) {
-    res.status(500).send({ success: false, error: "Internal Server Error" });
+    return res
+      .status(500)
+      .send({ success: false, error: "Internal Server Error" });
   }
 });
 
@@ -198,7 +200,8 @@ server.get("/users/notes", async (req, res) => {
       res.status(200).send({ success: true, data: result.notes });
     }
   } catch (error) {
-    res.status(500).send({ success: false, error: error.message });
+    console.log(error);
+    return res.status(500).send({ success: false, error: error.message });
   }
 });
 
