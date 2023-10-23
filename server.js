@@ -144,6 +144,7 @@ server.put("/users/foods/:foodId", async (req, res) => {
           "foods.$.origin": editedFood.origin,
           "foods.$.price": editedFood.price,
           "foods.$.date": editedFood.date,
+          "foods.$.image": editedFood.image,
         },
       }
     );
