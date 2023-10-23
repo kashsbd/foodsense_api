@@ -31,7 +31,6 @@ server.use(cors());
 // auth api
 server.post("/login", async (req, res) => {
   const body = req.body;
-
   try {
     const owner = await db
       .collection(COLLECTION_OWNER)
@@ -171,14 +170,25 @@ server.post("/users/notes", async (req, res) => {
     notes._id = new ObjectId();
     const result = await db.collection(COLLECTION_OWNER).updateOne({ _id: new ObjectId(userId) }, { $push: { notes: notes } });
     if (result) {
-      res.status(200).send({ success: true, data: result });
+      res.status(200).send({ success: true, data: result.notes });
     }
   } catch (error) {
     res.status(500).send({ success: false, error: 'Internal Server Error' })
   }
-
-
 });
+
+server.get('/users/notes',async(req,res)=>{
+  try {
+    const {userId}=req.loggedInUser;
+    const result=await db.collection(COLLECTION_OWNER).findOne({_id:new ObjectId(userId)});
+    if(result){
+      res.status(200).send({success:true,data:result.notes});
+    }
+  } catch (error) {
+    res.status(500).send({success:false,error:error.message})
+    
+  }
+})
 
 // profile api
 server.get("/users/me", async (req, res) => {
