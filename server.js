@@ -136,12 +136,17 @@ server.put("/users/foods/:foodId", async (req, res) => {
   const foodId = req.params.foodId;
   const editedFood = req.body;
   try {
-    await db
-      .collection(COLLECTION_OWNER)
-      .updateOne(
-        { _id: new ObjectId(userId), "foods._id": new ObjectId(foodId) },
-        { $set: { "foods.$": editedFood } }
-      );
+    await db.collection(COLLECTION_OWNER).updateOne(
+      { _id: new ObjectId(userId), "foods._id": new ObjectId(foodId) },
+      {
+        $set: {
+          "foods.$.name": editedFood.name,
+          "foods.$.origin": editedFood.origin,
+          "foods.$.price": editedFood.price,
+          "foods.$.date": editedFood.date,
+        },
+      }
+    );
     res.status(201).send({ success: true, data: editedFood });
   } catch (error) {
     console.log(error);
@@ -179,8 +184,7 @@ server.post("/users/notes", async (req, res) => {
       res.status(200).send({ success: true, data: result.notes });
     }
   } catch (error) {
-    console.log(error);
-    return res.status(500).send({ success: false, error: error?.message });
+    res.status(500).send({ success: false, error: "Internal Server Error" });
   }
 });
 
@@ -194,8 +198,7 @@ server.get("/users/notes", async (req, res) => {
       res.status(200).send({ success: true, data: result.notes });
     }
   } catch (error) {
-    console.log(error);
-    return res.status(500).send({ success: false, error: error?.message });
+    res.status(500).send({ success: false, error: error.message });
   }
 });
 
