@@ -106,7 +106,7 @@ server.get("/users/foods", async (req, res) => {
       res.status(404).send({ success: false, error: "Owner not found" });
     }
   } catch (error) {
-    res
+    return res
       .status(500)
       .send({ success: false, error: "Cannot get data from database" });
   }
@@ -124,7 +124,10 @@ server.post("/users/foods", async (req, res) => {
         { $push: { foods: { _id: new ObjectId(), ...newFood } } }
       );
     res.status(201).send({ success: true, data: newFood });
-  } catch (error) { }
+  } catch (error) {
+    console.log(error);
+    return res.status(500).send({ success: false, error: error?.message });
+  }
 });
 
 // Edit food
@@ -141,7 +144,8 @@ server.put("/users/foods/:foodId", async (req, res) => {
       );
     res.status(201).send({ success: true, data: editedFood });
   } catch (error) {
-    res.status(500).send({ success: false, error: "Server Error" });
+    console.log(error);
+    return res.status(500).send({ success: false, error: error?.message });
   }
 });
 
@@ -157,10 +161,10 @@ server.delete("/users/foods/:foodId", async (req, res) => {
       );
     res.status(204).send({ success: true, data: result });
   } catch (error) {
-    res.status(500).send({ success: false, error: "Server error" });
+    console.log(error);
+    return res.status(500).send({ success: false, error: error?.message });
   }
 });
-
 
 server.post("/users/notes", async (req, res) => {
   try {
@@ -168,27 +172,32 @@ server.post("/users/notes", async (req, res) => {
     const notes = req.body;
     notes.date = new Date();
     notes._id = new ObjectId();
-    const result = await db.collection(COLLECTION_OWNER).updateOne({ _id: new ObjectId(userId) }, { $push: { notes: notes } });
+    const result = await db
+      .collection(COLLECTION_OWNER)
+      .updateOne({ _id: new ObjectId(userId) }, { $push: { notes: notes } });
     if (result) {
       res.status(200).send({ success: true, data: result.notes });
     }
   } catch (error) {
-    res.status(500).send({ success: false, error: 'Internal Server Error' })
+    console.log(error);
+    return res.status(500).send({ success: false, error: error?.message });
   }
 });
 
-server.get('/users/notes',async(req,res)=>{
+server.get("/users/notes", async (req, res) => {
   try {
-    const {userId}=req.loggedInUser;
-    const result=await db.collection(COLLECTION_OWNER).findOne({_id:new ObjectId(userId)});
-    if(result){
-      res.status(200).send({success:true,data:result.notes});
+    const { userId } = req.loggedInUser;
+    const result = await db
+      .collection(COLLECTION_OWNER)
+      .findOne({ _id: new ObjectId(userId) });
+    if (result) {
+      res.status(200).send({ success: true, data: result.notes });
     }
   } catch (error) {
-    res.status(500).send({success:false,error:error.message})
-    
+    console.log(error);
+    return res.status(500).send({ success: false, error: error?.message });
   }
-})
+});
 
 // profile api
 server.get("/users/me", async (req, res) => {
