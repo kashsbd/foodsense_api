@@ -22,7 +22,6 @@ async function connectDB() {
     console.error("Error connecting to MongoDB: " + err);
   }
 }
-
 connectDB();
 
 const server = express();
@@ -32,7 +31,6 @@ server.use(cors());
 // auth api
 server.post("/login", async (req, res) => {
   const body = req.body;
-
   try {
     const owner = await db
       .collection(COLLECTION_OWNER)
@@ -70,7 +68,6 @@ server.post("/login", async (req, res) => {
 
 server.post("/signup", async (req, res) => {
   const body = req.body;
-
   try {
     const allOwners = await db
       .collection(COLLECTION_OWNER)
@@ -82,7 +79,6 @@ server.post("/signup", async (req, res) => {
         .status(409)
         .send({ success: false, error: "Please use another email." });
     }
-
     const hashedPassword = await bcrypt.hash(body?.password, 10);
     await db
       .collection(COLLECTION_OWNER)
@@ -128,7 +124,7 @@ server.post("/users/foods", async (req, res) => {
         { $push: { foods: { _id: new ObjectId(), ...newFood } } }
       );
     res.status(201).send({ success: true, data: newFood });
-  } catch (error) {}
+  } catch (error) { }
 });
 
 // Edit food
@@ -165,10 +161,34 @@ server.delete("/users/foods/:foodId", async (req, res) => {
   }
 });
 
-// notes api
-server.get("/users/notes", async (req, res) => {});
 
-server.post("/users/notes", async (req, res) => {});
+server.post("/users/notes", async (req, res) => {
+  try {
+    const { userId } = req.loggedInUser;
+    const notes = req.body;
+    notes.date = new Date();
+    notes._id = new ObjectId();
+    const result = await db.collection(COLLECTION_OWNER).updateOne({ _id: new ObjectId(userId) }, { $push: { notes: notes } });
+    if (result) {
+      res.status(200).send({ success: true, data: result.notes });
+    }
+  } catch (error) {
+    res.status(500).send({ success: false, error: 'Internal Server Error' })
+  }
+});
+
+server.get('/users/notes',async(req,res)=>{
+  try {
+    const {userId}=req.loggedInUser;
+    const result=await db.collection(COLLECTION_OWNER).findOne({_id:new ObjectId(userId)});
+    if(result){
+      res.status(200).send({success:true,data:result.notes});
+    }
+  } catch (error) {
+    res.status(500).send({success:false,error:error.message})
+    
+  }
+})
 
 // profile api
 server.get("/users/me", async (req, res) => {
