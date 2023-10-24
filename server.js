@@ -245,7 +245,6 @@ server.put("/users/me", async (req, res) => {
       { _id: new ObjectId(userId) },
       {
         $set: {
-          email: body?.email,
           phno: body?.phno,
           fullname: body?.fullname,
           address: body?.address,
