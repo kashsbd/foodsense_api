@@ -4,9 +4,7 @@ const cors = require("cors");
 const { MongoClient, ObjectId } = require("mongodb");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
-
 const { validateToken } = require("./middleware");
-
 const mongoUrl = process.env.DB_URL;
 const dbName = process.env.DB_NAME;
 const COLLECTION_OWNER = "owner";
@@ -234,7 +232,6 @@ server.get("/users/me", async (req, res) => {
     return res.status(500).send({ success: false, error: error?.message });
   }
 });
-
 const port = process.env.PORT;
 server.listen(port, () => {
   console.log("Server is listening on port ", port);
