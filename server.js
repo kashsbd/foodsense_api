@@ -236,6 +236,28 @@ server.get("/users/me", async (req, res) => {
   }
 });
 
+server.put("/users/me", async (req, res) => {
+  const { userId } = req.loggedInUser;
+  const body = req.body;
+
+  try {
+    await db.collection(COLLECTION_OWNER).updateOne(
+      { _id: new ObjectId(userId) },
+      {
+        $set: {
+          phno: body?.phno,
+          fullname: body?.fullname,
+          address: body?.address,
+        },
+      }
+    );
+    return res.status(200).send({ success: true });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).send({ success: false, error: error?.message });
+  }
+});
+
 const port = process.env.PORT;
 server.listen(port, () => {
   console.log("Server is listening on port ", port);
